@@ -11,8 +11,7 @@ export async function identifyContact(
 
   try {
     await connection.beginTransaction();
-
-    const [existing] = await connection.query<((Contact & RowDataPacket))[]>(
+    const [existing] = await connection.query<(Contact & RowDataPacket)[]>(
       `SELECT * FROM Contact
        WHERE (email = ? AND ? IS NOT NULL)
           OR (phoneNumber = ? AND ? IS NOT NULL)`,
@@ -38,16 +37,26 @@ export async function identifyContact(
       };
     }
 
-    const ids = existing.map(c => c.id);
+    const primaryIds = new Set<number>();
 
-    const [related] = await connection.query<((Contact & RowDataPacket))[]>(
+    for (const contact of existing) {
+      if (contact.linkPrecedence === "primary") {
+        primaryIds.add(contact.id);
+      } else if (contact.linkedId) {
+        primaryIds.add(contact.linkedId);
+      }
+    }
+
+    const [related] = await connection.query<(Contact & RowDataPacket)[]>(
       `SELECT * FROM Contact
        WHERE id IN (?) OR linkedId IN (?)`,
-      [ids, ids]
+      [[...primaryIds], [...primaryIds]]
     );
 
     related.sort(
-      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      (a, b) =>
+        new Date(a.createdAt).getTime() -
+        new Date(b.createdAt).getTime()
     );
 
     const primary = related[0];
@@ -78,7 +87,7 @@ export async function identifyContact(
       );
     }
 
-    const [finalContacts] = await connection.query<((Contact & RowDataPacket))[]>(
+    const [finalContacts] = await connection.query<(Contact & RowDataPacket)[]>(
       `SELECT * FROM Contact
        WHERE id = ? OR linkedId = ?`,
       [primary.id, primary.id]
