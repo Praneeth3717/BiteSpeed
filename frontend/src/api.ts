@@ -4,7 +4,7 @@ export interface IdentifyPayload {
 }
 
 export const identifyContact = async (data: IdentifyPayload) => {
-  const response = await fetch("http://localhost:3000/identify", {
+  const response = await fetch("https://bitespeed-4pst.onrender.com/identify", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
