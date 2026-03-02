@@ -1,17 +1,12 @@
-import { Router, Request, Response } from "express";
+import { Router} from "express";
 import { identifyContact } from "../services/contactService";
+import { validateIdentifyInput } from "../middleware/validateInput";
 
 const router = Router();
 
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", validateIdentifyInput, async (req, res) => {
   try {
     const { email, phoneNumber } = req.body;
-
-    if (!email && !phoneNumber) {
-      return res.status(400).json({
-        message: "Either email or phoneNumber must be provided"
-      });
-    }
 
     const result = await identifyContact(email, phoneNumber);
     return res.status(200).json(result);

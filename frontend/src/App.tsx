@@ -15,19 +15,29 @@ function App() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [result, setResult] = useState<ContactResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async () => {
+    setError("");
+    setResult(null);
+
     if (!email && !phoneNumber) {
-      alert("Enter email or phone number");
+      setError("Either email or phone number must be provided");
       return;
     }
 
     try {
       setLoading(true);
-      const response = await identifyContact({ email, phoneNumber });
+
+      const response = await identifyContact({
+        email,
+        phoneNumber,
+      });
+
       setResult(response.contact);
-    } catch (error) {
-      alert("Something went wrong");
+    } catch (err: any) {
+      setError(err.message || "Something went wrong");
+      setResult(null);
     } finally {
       setLoading(false);
     }
@@ -65,6 +75,7 @@ function App() {
             {loading ? "Identifying..." : "Identify"}
           </button>
         </div>
+        {error && <p className="error">{error}</p>}
         {result && (
           <div className="result-card">
             <h3>Contact Result</h3>

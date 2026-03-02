@@ -12,9 +12,10 @@ export const identifyContact = async (data: IdentifyPayload) => {
     body: JSON.stringify(data),
   });
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch");
-  }
+  const result = await response.json();
 
-  return response.json();
+  if (!response.ok) {
+    throw new Error(result.message || "Something went wrong");
+  }
+  return result;
 };
